@@ -1,4 +1,4 @@
-interface ConstitutionParagraph {
+export interface ConstitutionParagraph {
 	title: string;
 	content: string[];
 }
