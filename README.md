@@ -1,18 +1,26 @@
 # sv
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
-
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
+Basic application structure:
 
 ```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
+src/
+├── lib/
+│   ├── components/
+│   │   ├── layout/
+│   │   │   ├── Header.svelte        # Site header
+│   │   │   └── ConstitutionCard.svelte  # Base card component
+│   │   └── features/
+│   │       └── constitution/
+│   │           ├── Preamble.svelte   # Preamble section
+│   │           └── Article.svelte    # Article component
+│   ├── utils/
+│   │   └── hieroglyphs.ts           # Hieroglyph utilities
+│   └── types.ts                      # TypeScript interfaces
+└── routes/
+    ├── +layout.svelte               # App layout with background
+    └── +page.svelte                 # Main page composition
 ```
+
 
 ## Developing
 
@@ -34,5 +42,23 @@ npm run build
 ```
 
 You can preview the production build with `npm run preview`.
+
+
+## Misc
+
+Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+
+### Creating a project
+
+If you're seeing this, you've probably already done this step. Congrats!
+```bash
+# create a new project in the current directory
+npx sv create
+
+# create a new project in my-app
+npx sv create my-app
+```
+
+### Deploying
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.

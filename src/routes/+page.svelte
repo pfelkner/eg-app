@@ -1,13 +1,26 @@
 <script lang="ts">
-	import { Card, CardContent } from '$lib/components/ui/card';
-	import type { PageData } from './+page';
+	import type { PageData } from './$types';
+	import Header from '$lib/components/layout/Header.svelte';
+	import Preamble from '$lib/components/features/constitution/Preamble.svelte';
+	import Article from '$lib/components/features/constitution/Article.svelte';
+	import { Card } from '$lib/components/ui/card';
+	import { constitutionStore, filteredArticles } from '$lib/stores/constitution';
 
 	export let data: PageData;
 
-	const hieroglyphs = ['𓀀', '𓃭', '𓂝', '𓆓', '𓇋', '𓈖', '𓅓', '𓊵', '𓄿', '𓂋', '𓏏'];
+	// Subscribe to filtered articles
+	$: articles = $filteredArticles;
+	$: ({ loading, error, activeArticle, readArticles, bookmarked } = $constitutionStore);
 
-	function shuffleHieroglyphs() {
-		return [...hieroglyphs].sort(() => Math.random() - 0.5).join(' ');
+	// Mark article as read when viewed
+	function handleArticleView(title: string) {
+		constitutionStore.markAsRead(title);
+		constitutionStore.setActiveArticle(title);
+	}
+
+	// Handle article bookmarking
+	function handleBookmark(title: string) {
+		constitutionStore.toggleBookmark(title);
 	}
 </script>
 
@@ -32,74 +45,42 @@
 		<!-- Cards Container with snap scrolling -->
 		<div class="snap-y snap-proximity space-y-16">
 			<!-- First Section with Header and Preamble -->
-			<section class="flex min-h-screen w-full snap-start flex-col items-center justify-start">
-				<!-- Header -->
-				<header class="w-full bg-[#132028]/30 px-4 py-4 backdrop-blur-sm">
-					<h1 class="font-cinzel text-center text-2xl font-bold text-[#8E8171]">
-						Verfassung des Egyptinischen Weltreichs
-					</h1>
-					<p class="mt-1 text-center text-base text-[#8E8171]">{shuffleHieroglyphs()}</p>
-				</header>
+			<Header />
 
-				<!-- Preamble Card -->
-				<div class="flex flex-1 items-center justify-center p-4">
-					<div class="w-full max-w-2xl">
-						<Card class="relative border-0 bg-[#132028]/40 backdrop-blur-sm">
-							<div
-								class="absolute inset-0 bg-[url('/black_gold_frame.svg')] bg-cover bg-center bg-no-repeat opacity-90"
-								style="transform: scale(1.02);"
-							></div>
-							<CardContent class="relative flex flex-col p-8">
-								<div class="py-16" />
-								<div class="space-y-3">
-									<h2 class="text-center text-2xl font-semibold italic text-[#8E8171]">Präambel</h2>
-									<h3 class="text-center text-sm text-[#8E8171]">{shuffleHieroglyphs()}</h3>
-									<p class=" text-[#8E8171]">
-										Im Bewusstsein seiner Verantwortung vor den Menschen, von dem Willen beseelt,
-										Freiheit für Jeden zu ermöglichen, Einheit und endgültigen Frieden auf Erden zu
-										schaffen, hat der unfehlbare, großartige und barmherzige König Ramses der II.
-										kraft seiner verfassungsgebenden Gewalt dem Egyptinischen Volke diese Verfassung
-										gegeben.
-									</p>
-									<p class="text-lg text-[#8E8171]">
-										Diese Verfassung gilt für das gesamte Egyptinische Volk.
-									</p>
-								</div>
-								<div class="py-16" />
-							</CardContent>
-						</Card>
-					</div>
+			{#if loading}
+				<div class="flex min-h-screen items-center justify-center">
+					<Card class="p-8 text-[#8E8171]">
+						<div class="flex items-center space-x-2">
+							<div class="h-4 w-4 animate-spin rounded-full border-b-2 border-[#8E8171]"></div>
+							<span>Loading constitution...</span>
+						</div>
+					</Card>
 				</div>
-			</section>
+			{:else if error}
+				<div class="flex min-h-screen items-center justify-center">
+					<Card class="p-8 text-red-500">
+						<div class="space-y-2">
+							<h3 class="font-bold">Error loading constitution</h3>
+							<p>{error.message}</p>
+						</div>
+					</Card>
+				</div>
+			{:else}
+				<Preamble />
 
-			<!-- Articles -->
-			{#each data.constitutionParagraphs as paragraph}
-				<section class="flex min-h-screen w-full snap-start items-center justify-center p-4">
-					<div class="w-full max-w-2xl">
-						<Card class="relative border-0 bg-[#132028]/40 backdrop-blur-sm">
-							<div
-								class="absolute inset-0 bg-[url('/black_gold_frame.svg')] bg-cover bg-center bg-no-repeat opacity-90"
-								style="transform: scale(1.02);"
-							></div>
-							<CardContent class="relative flex flex-col p-8">
-								<div class="py-16" />
-								<div class="space-y-3">
-									<h2 class="text-center text-2xl font-semibold text-[#8E8171]">
-										{paragraph.title}
-									</h2>
-									<h3 class="text-center text-base text-[#8E8171]">{shuffleHieroglyphs()}</h3>
-									{#each paragraph.content as contentParagraph}
-										<p class=" text-[#8E8171]">
-											{contentParagraph.replace(/\((\d+)\)/g, '(§$1)')}
-										</p>
-									{/each}
-								</div>
-								<div class="py-16" />
-							</CardContent>
-						</Card>
+				<!-- Articles -->
+				{#each articles as paragraph}
+					<div class="relative" on:inview={() => handleArticleView(paragraph.title)}>
+						<Article
+							{paragraph}
+							isRead={readArticles.has(paragraph.title)}
+							isBookmarked={bookmarked.has(paragraph.title)}
+							isActive={activeArticle === paragraph.title}
+							onBookmark={() => handleBookmark(paragraph.title)}
+						/>
 					</div>
-				</section>
-			{/each}
+				{/each}
+			{/if}
 		</div>
 	</div>
 </div>
